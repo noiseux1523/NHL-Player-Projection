@@ -103,6 +103,8 @@ def get_selection(nhl):
     TOTAL_PLAYERS = XI.shape[0] + nhl[(nhl.status == 'o') & (nhl['pos']=='A')].shape[0]\
                                 + nhl[(nhl.status == 'o') & (nhl['pos']=='D')].shape[0]\
                                 + nhl[(nhl.status == 'o') & (nhl['pos']=='G')].shape[0]
+    
+    # TODO: Modify with current cap hit
     if TOTAL_COST > 81500000:
         raise Exception(f'Current cap hit: {TOTAL_COST}, Total cap should not exceed 81,500,000')
     '''
@@ -141,6 +143,9 @@ def get_selection(nhl):
 
 
 def main():
+    """
+    TODO: Make sure the sheet ID in get_values() is correct with the updated stats in the spreadsheet.
+    """
     # Read attaquants
     attaquants = get_values('14_yHHExaNXEjFIVRr_OBLtpiWPRjOS-e9TEca6N28xU', 'Attaquants')
     attaquants = pd.DataFrame(attaquants[2:])
