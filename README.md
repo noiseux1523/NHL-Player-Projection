@@ -4,3 +4,4 @@ Prediction of NHL players' points projection using historical data and machine l
 ## TODO
 * Kedro for preprocessing
 * Scraper for capfriendly
+* Fast AI approach?
