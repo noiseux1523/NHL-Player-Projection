@@ -49,6 +49,9 @@ def get_values(SAMPLE_SPREADSHEET_ID, SAMPLE_RANGE_NAME):
 
 
 def get_selection(nhl):
+    # TODO: Modify with current cap hit
+    MAX_CAP = 81500000
+    
     # Setup
     nhl_unpicked = nhl[nhl.status != 'o']
     player = [str(i) for i in range(nhl_unpicked.shape[0])]
@@ -73,7 +76,7 @@ def get_selection(nhl):
     money_left = nhl[nhl.status == 'o']['cap_hit'].sum()
     
     prob += lpSum([player_vars[i] for i in player]) == spots_to_fill, "Total {spots_to_fill} Players"
-    prob += lpSum([cost[i] * player_vars[i] for i in player]) <= 81500000 - money_left, "Total Cost"
+    prob += lpSum([cost[i] * player_vars[i] for i in player]) <= MAX_CAP - money_left, "Total Cost"
     prob += lpSum([att[i] * player_vars[i] for i in player]) <= 13-nb_forwards, "Less than 13 att"
     prob += lpSum([defe[i] * player_vars[i] for i in player]) <= 7-nb_def, "Less than 7 def"
     prob += lpSum([goal[i] * player_vars[i] for i in player]) <= 2-nb_goalers, "Less than 2 goalers"
@@ -96,23 +99,22 @@ def get_selection(nhl):
     TOTAL_POINTS = XI['proj'].sum() + nhl[(nhl.status == 'o') & (nhl['pos']=='A')]['proj'].sum()\
                                     + nhl[(nhl.status == 'o') & (nhl['pos']=='D')]['proj'].sum()\
                                     + nhl[(nhl.status == 'o') & (nhl['pos']=='G')]['proj'].sum()
-    curren_cost = + nhl[(nhl.status == 'o') & (nhl['pos']=='A')]['cap_hit'].sum()\
-                  + nhl[(nhl.status == 'o') & (nhl['pos']=='D')]['cap_hit'].sum()\
-                  + nhl[(nhl.status == 'o') & (nhl['pos']=='G')]['cap_hit'].sum()
-    TOTAL_COST = XI['cap_hit'].sum() + curren_cost
+    current_cost = + nhl[(nhl.status == 'o') & (nhl['pos']=='A')]['cap_hit'].sum()\
+                   + nhl[(nhl.status == 'o') & (nhl['pos']=='D')]['cap_hit'].sum()\
+                   + nhl[(nhl.status == 'o') & (nhl['pos']=='G')]['cap_hit'].sum()
+    TOTAL_COST = XI['cap_hit'].sum() + current_cost
     TOTAL_PLAYERS = XI.shape[0] + nhl[(nhl.status == 'o') & (nhl['pos']=='A')].shape[0]\
                                 + nhl[(nhl.status == 'o') & (nhl['pos']=='D')].shape[0]\
                                 + nhl[(nhl.status == 'o') & (nhl['pos']=='G')].shape[0]
     
-    # TODO: Modify with current cap hit
-    if TOTAL_COST > 81500000:
-        raise Exception(f'Current cap hit: {TOTAL_COST}, Total cap should not exceed 81,500,000')
+    if TOTAL_COST > MAX_CAP:
+        raise Exception(f'Current cap hit: {TOTAL_COST}, Total cap should not exceed {MAX_CAP}')
     '''
     TODO: Print current players, and players to add
     '''
     os.system('cls' if os.name == 'nt' else 'clear')
     print("Projected Points: {:,}\nCost: {:,}\nPlayers: {}\nCurrent Roster: {}".format(TOTAL_POINTS, TOTAL_COST, TOTAL_PLAYERS, nhl[nhl.status == 'o'].shape[0]))
-    print("Cap Used: {:,}\nCap per Player Left: {:,}\n".format(curren_cost, int((81500000-curren_cost)/(22-nhl[nhl.status == 'o'].shape[0]))))
+    print("Cap Used: {:,}\nCap per Player Left: {:,}\n".format(current_cost, int((MAX_CAP-current_cost)/(22-nhl[nhl.status == 'o'].shape[0]))))
     print('FORWARDS')
     print('---------------------------------------------')
     print('CURRENT')
@@ -146,24 +148,28 @@ def main():
     """
     TODO: Make sure the sheet ID in get_values() is correct with the updated stats in the spreadsheet.
     """
+    # TODO: change UID of the sheet to the correct one
+    SHEET_ID = '1yJ8Su5zcyAOADDU_YXYTFqkTbM_siwNYuxESR3fgBc8'
+
     # Read attaquants
-    attaquants = get_values('14_yHHExaNXEjFIVRr_OBLtpiWPRjOS-e9TEca6N28xU', 'Attaquants')
+    attaquants = get_values(SHEET_ID, 'Attaquants')
     attaquants = pd.DataFrame(attaquants[2:])
     attaquants = attaquants.dropna(subset=[0,36]) # Drop if no name or nan cap hits
     attaquants = attaquants[attaquants[36]!='']
     attaquants['pos'] = 'A'
 
     # Read defenseurs
-    defenseurs = get_values('14_yHHExaNXEjFIVRr_OBLtpiWPRjOS-e9TEca6N28xU', 'Defenseurs')
+    defenseurs = get_values(SHEET_ID, 'Defenseurs')
     defenseurs = pd.DataFrame(defenseurs[2:])
     defenseurs = defenseurs.dropna(subset=[0,36]) # Drop if no name or nan cap hits
     defenseurs = defenseurs[defenseurs[36]!='']
     defenseurs['pos'] = 'D'
 
     # Read gardiens
-    gardiens = get_values('14_yHHExaNXEjFIVRr_OBLtpiWPRjOS-e9TEca6N28xU', 'Gardiens')
+    gardiens = get_values(SHEET_ID, 'Gardiens')
     gardiens = pd.DataFrame(gardiens[1:])
     gardiens = gardiens.dropna(subset=[0,21]) # Drop if no name or nan cap hits
+    gardiens = gardiens[gardiens[21]!='']
     gardiens['pos'] = 'G'
     
     # Preprocessing
