@@ -149,7 +149,7 @@ def main():
     TODO: Make sure the sheet ID in get_values() is correct with the updated stats in the spreadsheet.
     """
     # TODO: change UID of the sheet to the correct one
-    SHEET_ID = '1yJ8Su5zcyAOADDU_YXYTFqkTbM_siwNYuxESR3fgBc8'
+    SHEET_ID = '1vEhrqIefU233CMnH7zM-i8RIQiYox6oUCVDOzONZVyc'
 
     # Read attaquants
     attaquants = get_values(SHEET_ID, 'Attaquants')
@@ -178,6 +178,7 @@ def main():
                      gardiens[[1,2,'pos',12,21,22]].rename({1: 'name', 2: 'status', 12: 'proj', 21: 'cap_hit', 22: 'end'}, axis=1)],
                      ignore_index=True)
     nhl['cap_hit'] = nhl['cap_hit'].replace(',', '', regex=True).astype(int)
+    nhl['proj'] = nhl['proj'].replace(to_replace='', value=0)
     nhl['proj'] = nhl['proj'].astype(int)
     nhl = nhl[nhl.status != 'x'] # Only look at available players
     nhl = nhl[nhl.proj > 0] # Only keep players with more than 0 projected points
